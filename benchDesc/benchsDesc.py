@@ -1,7 +1,6 @@
 #!/usr/bin/python3
-import subprocess,os
+import os
 import json
-import getopt, sys
 
 PapaBenchFBW_tasks = ["check_failsafe_task",
 "check_mega128_values_task",

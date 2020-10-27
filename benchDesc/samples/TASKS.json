@@ -1,0 +1,35 @@
+{
+	"name": "papabench",
+	"execs": [
+		{
+			"name": "fbw",
+			"path": "sw/airborne/fly_by_wire/fbw.elf"
+		},
+		{
+			"name": "autopilot",
+			"path": "sw/airborne/autopilot/autopilot.elf"
+		}
+	],
+	"tasks": [
+		{ "name": "check_failsafe_task",			"freq": 20,	"exec": "fbw" },
+		{ "name": "check_mega128_values_task",		"freq": 20,	"exec": "fbw" },
+		{ "name": "send_data_to_autopilot_task",	"freq": 40,	"exec": "fbw" },
+		{ "name": "servo_transmit",					"freq": 20,	"exec": "fbw" },
+		{ "name": "test_ppm_task",					"freq": 40,	"exec": "fbw" },
+		{ "name": "__vector_5",						"freq": 40,	"exec": "fbw" },
+		{ "name": "__vector_6",						"freq": 20,	"exec": "fbw" },
+		{ "name": "__vector_10",					"freq": 40,	"exec": "fbw" },
+		{ "name": "altitude_control_task",			"freq": 4,	"exec": "autopilot" },
+		{ "name": "climb_control_task",				"freq": 4,	"exec": "autopilot"  },
+		{ "name": "link_fbw_send",					"freq": 20,	"exec": "autopilot"  },
+		{ "name": "navigation_task",				"freq": 4,	"exec": "autopilot"  },
+		{ "name": "radio_control_task",				"freq": 40,	"exec": "autopilot"  },
+		{ "name": "receive_gps_data_task",			"freq": 4,	"exec": "autopilot"  },
+		{ "name": "reporting_task",					"freq": 10,	"exec": "autopilot"  },
+		{ "name": "stabilisation_task",				"freq": 20,	"exec": "autopilot"  },
+		{ "name": "__vector_5",						"freq": 10,	"exec": "autopilot"  },
+		{ "name": "__vector_12",					"freq": 20,	"exec": "autopilot"  },
+		{ "name": "__vector_17",					"freq": 20,	"exec": "autopilot"  },
+		{ "name": "__vector_30",					"freq": 4,	"exec": "autopilot"  }
+	]
+}
