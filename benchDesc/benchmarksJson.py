@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import json
 import pandas as pd
-import tasksJsonDecode
+import tasksJson
 import os
 
 # Some constant for colored text
@@ -78,7 +78,7 @@ class BenchmarksJson:
                 benches = []
                 # the task and its ELF is built for every bench (using TasksJson)
                 for bench in group_object['Benches']:
-                    tasks = tasksJsonDecode.TasksJson(
+                    tasks = tasksJson.TasksJson(
                         os.path.join(self.__base_dir, group_object['Dir'], bench, "TASKS.json"))
                     __benches = tasks.generate_all_benches()
                     __benches = [(b[0], os.path.join(group_object['Dir'], bench, b[1])) for b in __benches]

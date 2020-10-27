@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 import unittest
-from benchDesc import benchmarksJsonDecode
+from benchDesc import benchmarksJson
 
 
 class MyTestCase(unittest.TestCase):
     def test_benchJson(self):
-        t = benchmarksJsonDecode.BenchmarksJson("TACLe.json")
+        t = benchmarksJson.BenchmarksJson("TACLe.json")
         print(t.get_info())
 
 
