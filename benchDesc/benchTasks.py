@@ -12,12 +12,15 @@ BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 
 
-class TasksJson:
-    def __init__(self, file):
-        self._info = set()
+class BenchTasks:
+    def __init__(self):
+        self.__info = set()
+        self.__name = None
+
+    def load_from_json(self, file):
         with open(file) as f:
             j = json.load(f)
-        self._name = j['name']
+        self.__name = j['name']
         tasks = j['tasks']
         execs = j['execs']
         for t in tasks:
@@ -28,19 +31,13 @@ class TasksJson:
                     break
             if path is None:
                 print("Can not find the executable of task ", t['name'])
-            self._info.add((t['name'], path))
+            self.__info.add((t['name'], path))
 
     def generate_all_benches(self, exclude=None):
         if exclude is None:
             exclude = {}
-        info_excluding_errors = [x for x in self._info if x[0] not in exclude]
+        info_excluding_errors = [x for x in self.__info if x[0] not in exclude]
         return info_excluding_errors
 
     def name(self):
-        return self._name
-
-
-if __name__ == "__main__":
-    print(HEADER + "Testing Class TasksJson" + ENDC)
-    tasks = TasksJson("samples/TASKS.json")
-    print(tasks.generate_all_benches())
+        return self.__name

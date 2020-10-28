@@ -1,0 +1,10 @@
+{
+  "Name" : "XDD_EXP",
+  "Exec" : "/home/baiz/Work/xdd/build/xdd",
+  "Arch" : "Simple",
+  "Options" : ["--split-threshold=15", "--use-xdd", "-v",
+    "--simple", "--add-prop", "otawa::dfa::CONST_SECTION=.got"],
+  "BenchGroup" : "ALL",
+  "BenchStatus" : "OK",
+  "LogPath" : "log_xdd_exp"
+}

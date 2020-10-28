@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import json
 import pandas as pd
-import tasksJson
+from benchDesc import benchTasks
 import os
 
 # Some constant for colored text
@@ -30,15 +30,25 @@ class UnknownBenchsType(Exception):
     pass
 
 
-class BenchmarksJson:
+class Benchmarks:
     """
     Represents a Json file recording a benchmarks set,
     currently supports TACLeBench
     """
 
-    def __init__(self, file):
+    def __init__(self):
+        # name
+        self.__name = None
+        # path to the root of benchmarks
+        self.__base_dir = None
+        # ALl goups
+        self.__groups = None
+        # Data
+        self.__tab = None
+
+    def load_from_json(self, file="samples/TACLe.json"):
         """
-        Construct object using the path to Json description file of benchmarks set
+        load Json description file of benchmarks set
         :param file:  the Json description file
         """
         # load file
@@ -63,6 +73,7 @@ class BenchmarksJson:
             data['Group'] = []
             data['Status'] = []
             data['ELF'] = []
+            data['EntryPoint'] = []
 
             # Group Object
             group_object = j[group_name]
@@ -72,19 +83,21 @@ class BenchmarksJson:
                 # Takes benches directely
                 data['Bench'] = group_object["Benches"]
                 # ELF path can be determined
-                data['ELF'] = [os.path.join(self.__base_dir, group_object['Dir'], b + ".elf") for b in data["Bench"]]
+                data['ELF'] = [os.path.join(self.__base_dir, group_object['Dir'],b, b + ".elf") for b in data["Bench"]]
+                data['EntryPoint'] = [x + "_main" for x in data['Bench']]
             # in case of using TASKS.json
             elif group_object['Type'] == "Tasks":
                 benches = []
-                # the task and its ELF is built for every bench (using TasksJson)
+                # the task and its ELF is built for every bench (using BenchTasks)
                 for bench in group_object['Benches']:
-                    tasks = tasksJson.TasksJson(
-                        os.path.join(self.__base_dir, group_object['Dir'], bench, "TASKS.json"))
+                    tasks = benchTasks.BenchTasks()
+                    tasks.load_from_json(os.path.join(self.__base_dir, group_object['Dir'], bench, "TASKS.json"))
                     __benches = tasks.generate_all_benches()
                     __benches = [(b[0], os.path.join(group_object['Dir'], bench, b[1])) for b in __benches]
                     benches = benches + __benches
                 data['Bench'] = [b[0] for b in benches]
                 data['ELF'] = [os.path.join(self.__base_dir, b[1]) for b in benches]
+                data['EntryPoint'] = data['Bench']
             else:
                 raise UnknownBenchsType
 
@@ -111,7 +124,20 @@ class BenchmarksJson:
         """
         return self.__tab
 
+    def get_ok_benches(self):
+        return self.__tab.loc[self.__tab["Status"] == "OK"]
+
+    def get_ok_benches_as_list(self):
+        return self.get_ok_benches()["Bench"].to_list()
+
+    def get_ok_benches_as_triplet(self):
+        return list(zip(self.get_ok_benches()['Bench'].to_list(),
+                        self.get_ok_benches()['ELF'].to_list(),
+                        self.get_ok_benches()['EntryPoint'].to_list()
+                        ))
+
 
 if __name__ == "__main__":
-    t = BenchmarksJson("samples/TACLe.json")
-    print(t.get_info())
+    t = Benchmarks()
+    t.load_from_json("samples/TACLe.json")
+    print(t.get_ok_benches_as_triplet())
