@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import json
 import pandas as pd
-from benchDesc import benchTasks
 import os
 
 # Some constant for colored text
@@ -20,6 +19,37 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
+
+
+class BenchTasks:
+    def __init__(self):
+        self.__info = set()
+        self.__name = None
+
+    def load_from_json(self, file):
+        with open(file) as f:
+            j = json.load(f)
+        self.__name = j['name']
+        tasks = j['tasks']
+        execs = j['execs']
+        for t in tasks:
+            path = None
+            for exec in execs:
+                if t['exec'] == exec['name']:
+                    path = exec['path']
+                    break
+            if path is None:
+                print("Can not find the executable of task ", t['name'])
+            self.__info.add((t['name'], path))
+
+    def generate_all_benches(self, exclude=None):
+        if exclude is None:
+            exclude = {}
+        info_excluding_errors = [x for x in self.__info if x[0] not in exclude]
+        return info_excluding_errors
+
+    def name(self):
+        return self.__name
 
 
 class UnknownBenchsType(Exception):
@@ -90,7 +120,7 @@ class Benchmarks:
                 benches = []
                 # the task and its ELF is built for every bench (using BenchTasks)
                 for bench in group_object['Benches']:
-                    tasks = benchTasks.BenchTasks()
+                    tasks = BenchTasks()
                     tasks.load_from_json(os.path.join(self.__base_dir, group_object['Dir'], bench, "TASKS.json"))
                     __benches = tasks.generate_all_benches()
                     __benches = [(b[0], os.path.join(group_object['Dir'], bench, b[1])) for b in __benches]

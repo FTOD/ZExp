@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 import unittest
-from benchDesc import benchTasks
+from experimentsManager import benchmanager
 
 
 class TestTasksJsonDecode(unittest.TestCase):
     def testPapapbenchTasks(self):
-        t = benchTasks.BenchTasks()
+        t = benchmanager.BenchTasks()
         t.load_from_json("TASKS.json")
         print(t.generate_all_benches())
         self.assertEqual("papabench", t.name())

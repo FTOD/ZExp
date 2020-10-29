@@ -1,9 +1,20 @@
 #!/usr/bin/python3
 import json
 import subprocess
-from benchDesc import benchmarks
+from experimentsManager import benchmanager
 from multiprocessing import Pool
 import os
+
+# Some constant for colored text
+HEADER = '\033[95m'
+OKBLUE = '\033[94m'
+OKCYAN = '\033[96m'
+OKGREEN = '\033[92m'
+WARNING = '\033[93m'
+FAIL = '\033[91m'
+ENDC = '\033[0m'
+BOLD = '\033[1m'
+UNDERLINE = '\033[4m'
 
 
 class Bench:
@@ -14,7 +25,7 @@ class Bench:
         self.__entry_point = entry_point
 
     def run(self, log=None):
-        print(self.__cmd + [self.__bin, self.__entry_point])
+        print(HEADER+ OKCYAN + "starting " + self.__entry_point + ENDC)
         result = subprocess.run(self.__cmd + [self.__bin, self.__entry_point],
                                 stderr=subprocess.PIPE)
         if log is not None:
@@ -22,6 +33,7 @@ class Bench:
                 f.write(result.stderr.decode("utf-8"))
         else:
             print(result.stderr.decode("utf-8"))
+        print(HEADER + OKGREEN + self.__entry_point + " finished " + ENDC)
 
 
 def handler(a):
@@ -35,20 +47,24 @@ class Experiment:
         self.__opts = None
         self.__log_output = None
         self.__benches = None
+        self.__basedir = None
+        self.__log_path = None
 
     def load_exp_from_json(self, file):
         with open(file) as f:
             j = json.load(f)
         self.__name = j['Name']
+        self.__basedir = j['BaseDir']
         self.__exec = j['Exec']
+        self.__exec = os.path.join(self.__basedir, self.__exec)
         self.__opts = j['Options']
-        self.__log_output = False
+        self.__log_path = j['LogPath']
 
-        benches = benchmarks.Benchmarks()
+        benches = benchmanager.Benchmarks()
         # TODO avoid hard coded path
-        benches.load_from_json("../benchDesc/samples/TACLe.json")
+        benches.load_from_json("samples/TACLe.json")
         benches = benches.get_ok_benches()
-        self.__benches = [Bench(name, [self.__exec] + self.__opts, _bin, entry_point)
+        self.__benches = [Bench(name, ["time", "-v", self.__exec] + self.__opts, _bin, entry_point)
                           for (name, _bin, entry_point) in
                           zip(benches['Bench'].to_list(),
                               benches['ELF'].to_list(),
@@ -56,10 +72,12 @@ class Experiment:
                               )]
 
     def run_all(self, nb_cores=4):
-        self.__benches[0].run()
-        with Pool(nb_cores) as pool:
-            for b in self.__benches:
-                pool.apply_async(b.run, error_callback=handler)
+        os.chdir(self.__basedir)
+        pool = Pool(nb_cores)
+        for b in self.__benches:
+            pool.apply_async(b.run, args=[self.__log_path], error_callback=handler)
+        pool.close()
+        pool.join()
 
 
 if __name__ == "__main__":
