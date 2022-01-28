@@ -1,7 +1,7 @@
 {
   "Name" : "TACLe",
   "Groups" : ["kernel", "sequential", "parallel", "app"],
-  "BaseDir" : "/home/baiz/Work/tacle-bench/bench",
+  "BaseDir" : "/home/blanc/work/tacle-bench/bench",
 
   "kernel" : {"Type" : "Simple", "Dir" : "kernel/",
     "Benches":[

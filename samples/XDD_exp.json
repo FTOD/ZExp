@@ -1,13 +1,11 @@
 {
   "Name" : "XDD_EXP",
-  "BaseDir": "/home/baiz/Work/xdd/",
+  "BaseDir": "/home/blanc/work/XDD/",
   "Exec" : "build/xdd",
   "Arch" : "Simple",
   "Options" : ["--split-threshold=15", "--use-xdd", "-v", "--simple",
     "--add-prop", "otawa::dfa::CONST_SECTION=.got",
-    "--add-prop", "otawa::CACHE_CONFIG_PATH=arch/simple_cache.xml",
-    "--add-prop", "otawa::PROCESSOR_PATH=arch/simple.xml",
-    "--add-prop", "otawa::MEMORY_PATH=arch/simple_mem.xml"],
+    "--simple"],
   "BenchGroup" : "ALL",
   "BenchStatus" : "OK",
   "LogPath" : "log_xdd_exp"

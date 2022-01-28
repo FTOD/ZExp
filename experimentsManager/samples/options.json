@@ -1,4 +1,0 @@
-{
-  "basic": "-v --add-prop otawa::dfa::CONST_SECTION=.got",
-  "xdd" : "--use-xdd"
-}

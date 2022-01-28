@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import unittest
-from experimentsManager import benchmanager
+import benchmanager
 
 
 class TestTasksJsonDecode(unittest.TestCase):

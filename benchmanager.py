@@ -18,7 +18,7 @@ UNDERLINE = '\033[4m'
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
-pd.set_option('display.max_colwidth', None)
+pd.set_option('display.max_colwidth', 999)
 
 
 class BenchTasks:
@@ -30,6 +30,7 @@ class BenchTasks:
         with open(file) as f:
             j = json.load(f)
         self.__name = j['name']
+        print(file)
         tasks = j['tasks']
         execs = j['execs']
         for t in tasks:

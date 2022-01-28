@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 import json
 import subprocess
-from experimentsManager import benchmanager
 from multiprocessing import Pool
 import os
+import benchmanager
 
 # Some constant for colored text
 HEADER = '\033[95m'
@@ -25,9 +25,9 @@ class Bench:
         self.__entry_point = entry_point
 
     def run(self, log=None):
-        print(HEADER+ OKCYAN + "starting " + self.__entry_point + ENDC)
+        print(HEADER + OKCYAN + "starting " + self.__entry_point + ENDC)
         result = subprocess.run(self.__cmd + [self.__bin, self.__entry_point],
-                                stderr=subprocess.PIPE)
+                                stderr=subprocess.PIPE, shell=True)
         if log is not None:
             with open(os.path.join(log, self.__name), "w") as f:
                 f.write(result.stderr.decode("utf-8"))
@@ -71,7 +71,13 @@ class Experiment:
                               benches['EntryPoint'].to_list()
                               )]
 
+    def prepare_dir(self):
+        os.chdir(self.__basedir)
+        if not os.path.isdir(self.__log_path):
+            os.mkdir(self.__log_path)
+
     def run_all(self, nb_cores=4):
+        self.prepare_dir()
         os.chdir(self.__basedir)
         pool = Pool(nb_cores)
         for b in self.__benches:
