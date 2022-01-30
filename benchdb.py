@@ -9,7 +9,7 @@ from multiprocessing import Pool
 
 colorama.init()
 
-TACLe_root_path = "/home/zhenyu/tacle-bench/bench"
+TACLe_root_path = "/home/blanc/work/tacle-bench/bench"
 TACLe_default_subdir = ["kernel", "sequential", "parallel", "app"]
 TACLe_default_kernel_benchs = ["insertsort", "fir2dim", "st", "deg2rad", "sha", "recursion", "filterbank",
                                "bitonic", "cubic", "cosf", "ludcmp", "pm", "bsort", "lms", "countnegative",
@@ -22,7 +22,7 @@ TACLe_default_sequential_benchs = ["ndes", "cjpeg_transupp", "cjpeg_wrbmp", "gsm
 TACLe_default_app_benchs = ["lift", "powerwindow"]
 TACLe_default_parallel_benchs = ["DEBIE", "PapaBench", "rosace"]
 
-analysis_cmd = ["/home/zhenyu/otawa/XDD/xstep/collSemantic_test", "-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got",
+analysis_cmd = ["/home/blanc/work/XDD/xstep/collSemantic_test", "-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got",
                 "--log", "proc",
                 "--add-prop", "otawa::PROCESSOR_PATH=/home/blanc/work/XDD/arch/simple.xml",
                 "--add-prop", "otawa::CACHE_CONFIG_PATH=/home/blanc/work/XDD/arch/simple_cache.xml",
