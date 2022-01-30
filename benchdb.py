@@ -29,6 +29,8 @@ analysis_cmd = ["/home/blanc/work/XDD/xstep/collSemantic_test", "-v", "--add-pro
                 "--add-prop", "otawa::MEMORY_PATH=/home/blanc/work/XDD/arch/simple_mem.xml"
                 ]
 
+TACLe_kernel_infty = ["pm", "bitonic"]
+
 
 def error_handle(err):
     print(Fore.RED)
@@ -56,7 +58,7 @@ class BenchsDB:
                       + Fore.RED + " does not exist" + Fore.RESET)
                 exit(-1)
             else:
-                new_row = pd.Series({"BenchName": bench, "TAGs": ["kernel"], "TestStatus": "None",
+                new_row = pd.Series({"BenchName": bench, "TAGs": "kernel", "TestStatus": "None",
                                      "TestInfo": "", "ExecPath": fullpath, "EntryPoint": bench + "_main"})
                 self.db = pd.concat([self.db, new_row.to_frame().T], ignore_index=True)
 
@@ -68,8 +70,8 @@ class BenchsDB:
                       + Fore.RED + "does not exist" + Fore.RESET)
                 exit(-1)
             else:
-                new_row = pd.Series({"BenchName": bench, "TAGs": ["sequential"], "TestStatus": "None",
-                                     "TestInfo": "", "ExecPath": fullpath + ".elf", "EntryPoint": bench + "_main"})
+                new_row = pd.Series({"BenchName": bench, "TAGs": "sequential", "TestStatus": "None",
+                                     "TestInfo": "", "ExecPath": fullpath, "EntryPoint": bench + "_main"})
                 self.db = pd.concat([self.db, new_row.to_frame().T], ignore_index=True)
 
         # parallel benchmarks
@@ -87,8 +89,8 @@ class BenchsDB:
                 execs = j["execs"]
                 for task in j["tasks"]:
                     new_bench = dict()
-                    new_bench["BenchName"] = benchname + "/" + task["name"]
-                    new_bench["TAGs"] = ["parallel"]
+                    new_bench["BenchName"] = benchname + "-" + task["name"]
+                    new_bench["TAGs"] = "parallel"
                     new_bench["TestStatus"] = "None"
                     new_bench["TestInfo"] = ""
                     exec_path = [exec1["path"] for exec1 in execs if exec1["name"] == task["exec"]]
@@ -116,8 +118,8 @@ class BenchsDB:
                 execs = j["execs"]
                 for task in j["tasks"]:
                     new_bench = dict()
-                    new_bench["BenchName"] = benchname + "/" + task["name"]
-                    new_bench["TAGs"] = ["app"]
+                    new_bench["BenchName"] = benchname + "-" + task["name"]
+                    new_bench["TAGs"] = "app"
                     new_bench["TestStatus"] = "None"
                     new_bench["TestInfo"] = ""
                     exec_path = [exec1["path"] for exec1 in execs if exec1["name"] == task["exec"]]
@@ -159,47 +161,68 @@ class BenchsDB:
         else:
             return True
 
-    def run_all(self, log="/tmp/logcaca", tags=None):  # TODO currently ignoring tags
+    def select_db(self, tags):
+        return self.db[self.db["TestStatus"].isin(tags) | self.db["TAGs"].isin(tags)]
+
+    def run(self, log="/tmp/logcaca", tags=None):  # TODO currently ignoring tags
         if tags is None:
             tags = []
         self.is_db_loaded()
         if not os.path.isdir(log):
             os.mkdir(log)
-        filtered_db = self.db[self.db["TestStatus"] == "None"]
+        if "all" in tags:
+            filtered_db = self.db
+        else:
+            filtered_db = self.select_db(tags)
         benchs = [(bn, [exe, ep]) for bn, exe, ep in
                   zip(filtered_db["BenchName"], filtered_db["ExecPath"], filtered_db["EntryPoint"])]
         pool = Pool(4)
         for b in benchs:
-            res = pool.apply_async(self.run_bench, args=[b, log], error_callback=error_handle)
+            pool.apply_async(self.run_bench, args=[b, log], error_callback=error_handle)
         pool.close()
         pool.join()
 
     def run_bench(self, bench, log):
         os.environ["LD_LIBRARY_PATH"] = "/home/blanc/otawa/lib/otawa/otawa"
         print(" ".join(analysis_cmd) + " " + " ".join(bench[1]))
-        result = subprocess.run(analysis_cmd + bench[1],
-                                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        with open(os.path.join(log, bench[0]), "w") as f:
-            f.write(result.stderr.decode("utf-8"))
-            f.write(result.stdout.decode("utf-8"))
+        try:
+            result = subprocess.run(analysis_cmd + bench[1],
+                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=30000)
+        except subprocess.TimeoutExpired:
+            result = None
 
-        if result.returncode != 0:
-            print(Fore.RED + bench[0] + " failed with exit code " + str(result.returncode) + Fore.RESET)
+        if result is None:
+            print(Fore.RED + bench[0] + " TIMED OUT" + Fore.RESET)
             self.ko_test_status(bench[0])
             self.load_database()
             self.db.loc[self.db["BenchName"] == bench[0], "TestStatus"] = "KO"
-            self.db.loc[self.db["BenchName"] == bench[0], "TestInfo"] = "Exit Code " + str(result.returncode)
+            self.db.loc[self.db["BenchName"] == bench[0], "TestInfo"] = "timeout"
             self.save_database()
+
         else:
-            self.load_database()
-            self.db.loc[self.db["BenchName"] == bench[0], "TestStatus"] = "OK"
-            self.save_database()
-            print(Fore.GREEN + bench[0] + " OK " + Fore.RESET)
+            with open(os.path.join(log, bench[0]), "w") as f:
+                f.write(result.stderr.decode("utf-8"))
+                f.write(result.stdout.decode("utf-8"))
+
+            if result.returncode != 0:
+                print(Fore.RED + bench[0] + " failed with exit code " + str(result.returncode) + Fore.RESET)
+                self.ko_test_status(bench[0])
+                self.load_database()
+                self.db.loc[self.db["BenchName"] == bench[0], "TestStatus"] = "KO"
+                self.db.loc[self.db["BenchName"] == bench[0], "TestInfo"] = "Exit Code " + str(result.returncode)
+                self.save_database()
+            else:
+                self.load_database()
+                self.db.loc[self.db["BenchName"] == bench[0], "TestStatus"] = "OK"
+                self.save_database()
+                print(Fore.GREEN + bench[0] + " OK " + Fore.RESET)
 
         self.save_database()
 
 
 if __name__ == "__main__":
     db = BenchsDB()
-    db.init()
-    db.run_all()
+    #db.init()
+    db.load_database()
+    print(db.select_db(["parallel"]))
+    db.run(tags=["parallel"])
