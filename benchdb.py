@@ -135,7 +135,6 @@ class BenchsDB:
                                15):  # more options can be specified also
             print(self.db)
         if not os.path.isfile("benchsDB.json"):
-            print(Fore.RED + "Database not found! How did you load it?" + Fore.RESET)
             exit(-1)
         self.save_database()
 
