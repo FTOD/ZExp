@@ -146,9 +146,6 @@ class BenchsDB:
         self.db.loc[self.db["BenchName"] == benchname, "TestStatus"] = "KO"
 
     def save_database(self):
-        if not os.path.isfile("benchsDB.json"):
-            print(Fore.RED + "Database not found! How did you load it?" + Fore.RESET)
-            exit(-1)
         self.db.to_json("benchsDB.json", orient='records', lines=True)
 
     def is_db_loaded(self):
