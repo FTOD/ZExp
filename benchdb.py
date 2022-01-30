@@ -134,8 +134,6 @@ class BenchsDB:
         with pd.option_context('display.max_rows', 100, 'display.max_columns',
                                15):  # more options can be specified also
             print(self.db)
-        if not os.path.isfile("benchsDB.json"):
-            exit(-1)
         self.save_database()
 
     def load_database(self):
