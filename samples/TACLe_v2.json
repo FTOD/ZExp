@@ -1,0 +1,75 @@
+{
+  "Name" : "TACLe",
+  "Groups" : ["kernel", "sequential", "parallel", "app"],
+  "BaseDir" : "/home/blanc/work/tacle-bench/bench",
+
+  "kernel" : {"Type" : "Simple", "Dir" : "kernel/",
+    "Benches":[
+    "insertsort", "fir2dim", "st", "deg2rad", "sha", "recursion", "filterbank",
+      "bitonic", "cubic", "cosf", "ludcmp", "pm", "bsort", "lms", "countnegative",
+      "iir", "minver", "prime", "complex_updates", "rad2deg", "fft", "matrix1",
+      "bitcount", "binarysearch", "md5", "fac", "quicksort", "isqrt", "jfdctint"
+    ],
+    "Errors": {
+      "recursion": "CLP SegFault",
+      "quicksort": "CFG checher",
+      "bsort": "DCache May analysis ASSERT crash",
+      "prime": "CLP forward predictor ASSSERT crash",
+      "jfdctint_main": "XSTEP generator crash",
+      "md5": "XSTEP generator crash"
+    },
+    "Infinite":{
+      "pm": "Recursive Analysis doesn't finish",
+      "bitonic": "CLP analysis doesn't finish"
+    }
+  },
+
+  "sequential": {"Type": "Simple", "Dir" : "sequential/",
+    "Benches": [
+      "ndes", "cjpeg_transupp", "cjpeg_wrbmp", "gsm_dec", "adpcm_enc", "epic", "mpeg2",
+      "huff_enc", "petrinet", "rijndael_enc", "gsm_enc", "rijndael_dec", "statemate",
+      "anagram", "susan", "g723_enc", "fmref", "ammunition", "audiobeam", "dijkstra",
+      "huff_dec", "h264_dec", "adpcm_dec"
+    ],
+    "Errors": {
+      "audiobeam": "CFGVarsManager events number out of range",
+      "epic": "forward predicate builder ASSERT crash",
+      "mpeg2": "MultiPersAnalysis SegFault",
+      "statemate": "MultiPersAnalysis SegFault",
+      "ndes": "branching_node = nullptr",
+      "h264_dec": "CFG disconnected",
+      "huff_dec": "HalfAbs",
+      "huff_enc": "CFG disconnected",
+      "anagram": "CFG checker",
+      "gsm_enc": "HalfAbs",
+      "susan": "CFG disconnected",
+      "cjpeg_transupp": "CFG disconnected",
+      "cjpeg_wrbmp": ".ff not found, zbai incapable to fix .ff",
+      "ammunition": "CFG disconnected",
+      "adpcm_dec": "dcache"
+    },
+    "Infinite": {
+      "fmref": "CLP analysis does not finish"
+    }
+  },
+
+  "app":{ "Type": "Tasks", "Dir": "app/", "json": "TASKS.json",
+    "Benches":[
+      "lift","powerwindow"
+    ],
+    "Errors" : {},
+    "Infinite": {}
+  },
+
+  "parallel": {"Type": "Tasks","Dir": "parallel/","json": "TASKS.json",
+    "Benches": [
+      "DEBIE","PapaBench","rosace"
+    ],
+    "Errors": {
+      "navigation_task": "Task marked in the task description file is not found in the binary",
+      "receive_gps_data_task": "Task marked in the task description file is not found in the binary",
+      "reporting_task": "Task marked in the task description file is not found in the binary"
+    },
+    "Infinite": {}
+  }
+}

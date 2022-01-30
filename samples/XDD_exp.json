@@ -1,12 +1,13 @@
 {
   "Name" : "XDD_EXP",
   "BaseDir": "/home/blanc/work/XDD/",
-  "Exec" : "build/xdd",
-  "Arch" : "Simple",
-  "Options" : ["--split-threshold=15", "--use-xdd", "-v", "--simple",
-    "--add-prop", "otawa::dfa::CONST_SECTION=.got",
-    "--simple"],
-  "BenchGroup" : "ALL",
+  "Exec" : "xstep/collSemantic_test",
+  "Options" : ["-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got", "--log", "proc",
+    "--add-prop", "otawa::PROCESSOR_PATH=/home/blanc/work/XDD/arch/simple.xml",
+    "--add-prop", "otawa::CACHE_CONFIG_PATH=/home/blanc/work/XDD/arch/simple_cache.xml",
+    "--add-prop", "otawa::MEMORY_PATH=/home/blanc/work/XDD/arch/simple_mem.xml"
+  ],
+  "BenchGroups" : ["parallel"],
   "BenchStatus" : "OK",
-  "LogPath" : "log_xdd_exp"
+  "LogPath" : "log_2022-01-29"
 }

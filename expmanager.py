@@ -25,18 +25,25 @@ class Bench:
         self.__entry_point = entry_point
 
     def run(self, log=None):
+        os.environ["LD_LIBRARY_PATH"] = "/home/blanc/otawa/lib/otawa/otawa"
         print(HEADER + OKCYAN + "starting " + self.__entry_point + ENDC)
+        print(" ".join(self.__cmd) + " " + self.__bin + " "+ self.__entry_point)
         result = subprocess.run(self.__cmd + [self.__bin, self.__entry_point],
-                                stderr=subprocess.PIPE, shell=True)
+                                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         if log is not None:
             with open(os.path.join(log, self.__name), "w") as f:
                 f.write(result.stderr.decode("utf-8"))
+                f.write(result.stdout.decode("utf-8"))
         else:
             print(result.stderr.decode("utf-8"))
-        print(HEADER + OKGREEN + self.__entry_point + " finished " + ENDC)
+        if result.returncode != 0:
+            print(HEADER + FAIL + self.__entry_point + " failed with exit code " + str(result.returncode))
+        else:
+            print(HEADER + OKGREEN + self.__entry_point + " finished " + ENDC)
 
 
 def handler(a):
+    print(HEADER + FAIL)
     print(a)
 
 
@@ -49,6 +56,7 @@ class Experiment:
         self.__benches = None
         self.__basedir = None
         self.__log_path = None
+        self.__bench_groups = None
 
     def load_exp_from_json(self, file):
         with open(file) as f:
@@ -59,12 +67,13 @@ class Experiment:
         self.__exec = os.path.join(self.__basedir, self.__exec)
         self.__opts = j['Options']
         self.__log_path = j['LogPath']
+        self.__bench_groups = j["BenchGroups"]
 
         benches = benchmanager.Benchmarks()
         # TODO avoid hard coded path
-        benches.load_from_json("samples/TACLe.json")
+        benches.load_from_json("samples/TACLe_tmp.json")
         benches = benches.get_ok_benches()
-        self.__benches = [Bench(name, ["time", "-v", self.__exec] + self.__opts, _bin, entry_point)
+        self.__benches = [Bench(name, [self.__exec] + self.__opts, _bin, entry_point)
                           for (name, _bin, entry_point) in
                           zip(benches['Bench'].to_list(),
                               benches['ELF'].to_list(),

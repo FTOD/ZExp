@@ -114,7 +114,7 @@ class Benchmarks:
                 # Takes benches directely
                 data['Bench'] = group_object["Benches"]
                 # ELF path can be determined
-                data['ELF'] = [os.path.join(self.__base_dir, group_object['Dir'],b, b + ".elf") for b in data["Bench"]]
+                data['ELF'] = [os.path.join(self.__base_dir, group_object['Dir'], b, b + ".elf") for b in data["Bench"]]
                 data['EntryPoint'] = [x + "_main" for x in data['Bench']]
             # in case of using TASKS.json
             elif group_object['Type'] == "Tasks":
@@ -171,4 +171,4 @@ class Benchmarks:
 if __name__ == "__main__":
     t = Benchmarks()
     t.load_from_json("samples/TACLe.json")
-    print(t.get_ok_benches_as_triplet())
+    print(t.get_ok_benches())
