@@ -6,10 +6,13 @@ import colorama
 from colorama import Fore, Back, Style
 import subprocess
 from multiprocessing import Pool
+import json
 
 colorama.init()
+with open('config.json', 'r') as f:
+    config_json = json.load(f)
 
-TACLe_root_path = "/home/blanc/work/tacle-bench/bench"
+TACLe_root_path = config_json["TACLe_ROOT"]
 TACLe_default_subdir = ["kernel", "sequential", "parallel", "app"]
 TACLe_default_kernel_benchs = ["insertsort", "fir2dim", "st", "deg2rad", "sha", "recursion", "filterbank",
                                "bitonic", "cubic", "cosf", "ludcmp", "pm", "bsort", "lms", "countnegative",
@@ -22,11 +25,13 @@ TACLe_default_sequential_benchs = ["ndes", "cjpeg_transupp", "cjpeg_wrbmp", "gsm
 TACLe_default_app_benchs = ["lift", "powerwindow"]
 TACLe_default_parallel_benchs = ["DEBIE", "PapaBench", "rosace"]
 
-analysis_cmd = ["/home/blanc/work/XDD/xstep/collSemantic_test", "-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got",
+XDD_root_path = config_json["XDD_ROOT"]
+
+analysis_cmd = [XDD_root_path+"xstep/collSemantic_test", "-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got",
                 "--log", "proc",
-                "--add-prop", "otawa::PROCESSOR_PATH=/home/blanc/work/XDD/arch/simple.xml",
-                "--add-prop", "otawa::CACHE_CONFIG_PATH=/home/blanc/work/XDD/arch/simple_cache.xml",
-                "--add-prop", "otawa::MEMORY_PATH=/home/blanc/work/XDD/arch/simple_mem.xml"
+                "--add-prop", "otawa::PROCESSOR_PATH="+XDD_root_path+"/arch/simple.xml",
+                "--add-prop", "otawa::CACHE_CONFIG_PATH="+XDD_root_path+"/arch/simple_cache.xml",
+                "--add-prop", "otawa::MEMORY_PATH="+XDD_root_path+"/arch/simple_mem.xml"
                 ]
 
 TACLe_kernel_infty = ["pm", "bitonic"]
@@ -216,7 +221,7 @@ class BenchsDB:
 
 if __name__ == "__main__":
     db = BenchsDB()
-    #db.init()
+    # db.init()
     db.load_database()
     print(db.select_db(["parallel"]))
     db.run(tags=["parallel"])
