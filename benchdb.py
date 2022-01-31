@@ -1,18 +1,20 @@
-#!/usr/bin/python3
 import json
+import sys
 import pandas as pd
 import os
 import colorama
 from colorama import Fore, Back, Style
 import subprocess
 from multiprocessing import Pool
-import json
+import getopt
 
 colorama.init()
 with open('config.json', 'r') as f:
     config_json = json.load(f)
-
 TACLe_root_path = config_json["TACLe_ROOT"]
+XDD_root_path = config_json["XDD_ROOT"]
+OTAWA_root_path = config_json["OTAWA_ROOT"]
+
 TACLe_default_subdir = ["kernel", "sequential", "parallel", "app"]
 TACLe_default_kernel_benchs = ["insertsort", "fir2dim", "st", "deg2rad", "sha", "recursion", "filterbank",
                                "bitonic", "cubic", "cosf", "ludcmp", "pm", "bsort", "lms", "countnegative",
@@ -25,13 +27,11 @@ TACLe_default_sequential_benchs = ["ndes", "cjpeg_transupp", "cjpeg_wrbmp", "gsm
 TACLe_default_app_benchs = ["lift", "powerwindow"]
 TACLe_default_parallel_benchs = ["DEBIE", "PapaBench", "rosace"]
 
-XDD_root_path = config_json["XDD_ROOT"]
-
-analysis_cmd = [XDD_root_path+"xstep/collSemantic_test", "-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got",
-                "--log", "proc",
-                "--add-prop", "otawa::PROCESSOR_PATH="+XDD_root_path+"/arch/simple.xml",
-                "--add-prop", "otawa::CACHE_CONFIG_PATH="+XDD_root_path+"/arch/simple_cache.xml",
-                "--add-prop", "otawa::MEMORY_PATH="+XDD_root_path+"/arch/simple_mem.xml"
+analysis_cmd = [str(os.path.join(XDD_root_path, "xstep/collSemantic_test")),
+                "-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got", "--log", "proc",
+                "--add-prop", "otawa::PROCESSOR_PATH=" + str(os.path.join(XDD_root_path, "arch/simple.xml")),
+                "--add-prop", "otawa::CACHE_CONFIG_PATH=" + str(os.path.join(XDD_root_path, "arch/simple_cache.xml")),
+                "--add-prop", "otawa::MEMORY_PATH=" + str(os.path.join(XDD_root_path, "arch/simple_mem.xml")),
                 ]
 
 TACLe_kernel_infty = ["pm", "bitonic"]
@@ -46,6 +46,9 @@ def error_handle(err):
 class BenchsDB:
     def __init__(self):
         self.db = None
+
+    def status(self):
+        return self.db[["BenchName", "TAGs", "TestStatus", "TestInfo"]]
 
     def init(self):
         if not os.path.isfile("benchsDB.json"):
@@ -150,8 +153,8 @@ class BenchsDB:
     def ko_test_status(self, benchname):
         self.db.loc[self.db["BenchName"] == benchname, "TestStatus"] = "KO"
 
-    def save_database(self):
-        self.db.to_json("benchsDB.json", orient='records', lines=True)
+    def save_database(self, file="benchsDB.json"):
+        self.db.to_json(file, orient='records', lines=True)
 
     def is_db_loaded(self):
         if self.db is None:
@@ -164,8 +167,6 @@ class BenchsDB:
         return self.db[self.db["TestStatus"].isin(tags) | self.db["TAGs"].isin(tags)]
 
     def run(self, log="/tmp/logcaca", tags=None):  # TODO currently ignoring tags
-        if tags is None:
-            tags = []
         self.is_db_loaded()
         if not os.path.isdir(log):
             os.mkdir(log)
@@ -186,7 +187,7 @@ class BenchsDB:
         print(" ".join(analysis_cmd) + " " + " ".join(bench[1]))
         try:
             result = subprocess.run(analysis_cmd + bench[1],
-                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=30000)
+                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=120)
         except subprocess.TimeoutExpired:
             result = None
 
@@ -220,8 +221,25 @@ class BenchsDB:
 
 
 if __name__ == "__main__":
-    db = BenchsDB()
-    # db.init()
-    db.load_database()
-    print(db.select_db(["parallel"]))
-    db.run(tags=["parallel"])
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help", "output="])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print(err)  # will print something like "option -a not recognized"
+        args = []
+        exit(2)
+    if "init" in args:
+        db = BenchsDB()
+        db.init()
+    elif "run" in args:
+        db = BenchsDB()
+        db.load_database()
+        db.run(tags=["all"])
+
+    elif "status" in args:
+        db = BenchsDB()
+        db.load_database()
+        df = db.status()
+        with pd.option_context('display.max_rows', 100, 'display.max_columns', 20, 'display.expand_frame_repr', False):
+            print(df)
+
