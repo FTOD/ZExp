@@ -133,3 +133,4 @@ dmypy.json
 
 # ZEXP database
 benchsDB.json
+config.json
