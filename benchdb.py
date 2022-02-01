@@ -214,6 +214,7 @@ class BenchsDB:
             else:
                 self.load_database()
                 self.db.loc[self.db["BenchName"] == bench[0], "TestStatus"] = "OK"
+                self.db.loc[self.db["BenchName"] == bench[0], "TestInfo"] = ""
                 self.save_database()
                 print(Fore.GREEN + bench[0] + " OK " + Fore.RESET)
 
