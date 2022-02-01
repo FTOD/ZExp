@@ -47,8 +47,11 @@ class BenchsDB:
     def __init__(self):
         self.db = None
 
-    def status(self):
-        return self.db[["BenchName", "TAGs", "TestStatus", "TestInfo"]]
+    def status(self, onlyKO=False):
+        if onlyKO:
+            return self.db[self.db["TestStatus"] == "KO"][["BenchName", "TAGs", "TestStatus", "TestInfo"]]
+        else:
+            return self.db[["BenchName", "TAGs", "TestStatus", "TestInfo"]]
 
     def init(self):
         if not os.path.isfile("benchsDB.json"):
@@ -223,7 +226,7 @@ class BenchsDB:
 
 if __name__ == "__main__":
     try:
-        opts, args = getopt.getopt(sys.argv[1:], [], ["help", "tag="])
+        opts, args = getopt.getopt(sys.argv[1:], "r", ["help", "errOnly", "tag="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -249,5 +252,8 @@ if __name__ == "__main__":
         db = BenchsDB()
         db.load_database()
         df = db.status()
+        for o, a in opts:
+            if o == "--errOnly":
+                df = db.status(onlyKO=True)
         with pd.option_context('display.max_rows', 100, 'display.max_columns', 20, 'display.expand_frame_repr', False):
             print(df)
