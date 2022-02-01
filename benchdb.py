@@ -223,7 +223,9 @@ class BenchsDB:
 
 if __name__ == "__main__":
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ho:v", ["help", "output="])
+        opts, args = getopt.getopt(sys.argv[1:], [], ["help", "tag="])
+        print(opts)
+        print(args)
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -235,7 +237,13 @@ if __name__ == "__main__":
     elif "run" in args:
         db = BenchsDB()
         db.load_database()
-        db.run(tags=["all"])
+        tag = ["all"]
+        for o, a in opts:
+            if o == "--tag":
+                tag = [a]
+        print(tag)
+        exit(1)
+        db.run(tags=tag)
 
     elif "status" in args:
         db = BenchsDB()
@@ -243,4 +251,3 @@ if __name__ == "__main__":
         df = db.status()
         with pd.option_context('display.max_rows', 100, 'display.max_columns', 20, 'display.expand_frame_repr', False):
             print(df)
-
