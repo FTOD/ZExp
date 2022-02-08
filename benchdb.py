@@ -169,7 +169,7 @@ class BenchsDB:
     def select_db(self, tags):
         return self.db[self.db["TestStatus"].isin(tags) | self.db["TAGs"].isin(tags)]
 
-    def run(self, log="/tmp/logcaca", tags=None):  # TODO currently ignoring tags
+    def run(self, log="/tmp/logcaca", tags=None):
         self.is_db_loaded()
         if not os.path.isdir(log):
             os.mkdir(log)
@@ -186,7 +186,7 @@ class BenchsDB:
         pool.join()
 
     def run_bench(self, bench, log):
-        os.environ["LD_LIBRARY_PATH"] = "/home/blanc/otawa/lib/otawa/otawa"
+        os.environ["LD_LIBRARY_PATH"] = os.path.join(OTAWA_root_path, "lib/otawa/otawa")
         print(" ".join(analysis_cmd) + " " + " ".join(bench[1]))
         try:
             result = subprocess.run(analysis_cmd + bench[1],
