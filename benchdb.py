@@ -9,46 +9,54 @@ from multiprocessing import Pool
 import getopt
 
 colorama.init()
-with open('config.json', 'r') as f:
-    config_json = json.load(f)
-TACLe_root_path = config_json["TACLe_ROOT"]
-XDD_root_path = config_json["XDD_ROOT"]
-OTAWA_root_path = config_json["OTAWA_ROOT"]
-
-TACLe_default_subdir = ["kernel", "sequential", "parallel", "app"]
-TACLe_default_kernel_benchs = ["insertsort", "fir2dim", "st", "deg2rad", "sha", "recursion", "filterbank",
-                               "bitonic", "cubic", "cosf", "ludcmp", "pm", "bsort", "lms", "countnegative",
-                               "iir", "minver", "prime", "complex_updates", "rad2deg", "fft", "matrix1",
-                               "bitcount", "binarysearch", "md5", "fac", "quicksort", "isqrt", "jfdctint"]
-TACLe_default_sequential_benchs = ["ndes", "cjpeg_transupp", "cjpeg_wrbmp", "gsm_dec", "adpcm_enc", "epic", "mpeg2",
-                                   "huff_enc", "petrinet", "rijndael_enc", "gsm_enc", "rijndael_dec", "statemate",
-                                   "anagram", "susan", "g723_enc", "fmref", "ammunition", "audiobeam", "dijkstra",
-                                   "huff_dec", "h264_dec", "adpcm_dec"]
-TACLe_default_app_benchs = ["lift", "powerwindow"]
-TACLe_default_parallel_benchs = ["DEBIE", "PapaBench", "rosace"]
-
-analysis_cmd = [str(os.path.join(XDD_root_path, "xstep/collSemantic_test")),
-                "-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got", "--log", "proc",
-                "--add-prop", "otawa::PROCESSOR_PATH=" + str(os.path.join(XDD_root_path, "arch/simple.xml")),
-                "--add-prop", "otawa::CACHE_CONFIG_PATH=" + str(os.path.join(XDD_root_path, "arch/simple_cache.xml")),
-                "--add-prop", "otawa::MEMORY_PATH=" + str(os.path.join(XDD_root_path, "arch/simple_mem.xml")),
-                ]
-
-TACLe_kernel_infty = ["pm", "bitonic"]
 
 
-def error_handle(err):
+def error_handle(e):
     print(Fore.RED)
-    print(err)
+    print(e)
     print(Fore.RESET)
 
 
 class BenchsDB:
     def __init__(self):
+        with open('config.json', 'r') as f:
+            config_json = json.load(f)
+        self.TACLe_root_path = config_json["TACLe_ROOT"]
+        self.XDD_root_path = config_json["XDD_ROOT"]
+        self.OTAWA_root_path = config_json["OTAWA_ROOT"]
+        self.LOG_PATH = config_json["LOG_PATH"]
+
+        self.TACLe_default_subdir = ["kernel", "sequential", "parallel", "app"]
+        self.TACLe_default_kernel_benchs = ["insertsort", "fir2dim", "st", "deg2rad", "sha", "recursion", "filterbank",
+                                            "bitonic", "cubic", "cosf", "ludcmp", "pm", "bsort", "lms", "countnegative",
+                                            "iir", "minver", "prime", "complex_updates", "rad2deg", "fft", "matrix1",
+                                            "bitcount", "binarysearch", "md5", "fac", "quicksort", "isqrt", "jfdctint"]
+        self.TACLe_default_sequential_benchs = ["ndes", "cjpeg_transupp", "cjpeg_wrbmp", "gsm_dec", "adpcm_enc", "epic",
+                                                "mpeg2",
+                                                "huff_enc", "petrinet", "rijndael_enc", "gsm_enc", "rijndael_dec",
+                                                "statemate",
+                                                "anagram", "susan", "g723_enc", "fmref", "ammunition", "audiobeam",
+                                                "dijkstra",
+                                                "huff_dec", "h264_dec", "adpcm_dec"]
+        self.TACLe_default_app_benchs = ["lift", "powerwindow"]
+        self.TACLe_default_parallel_benchs = ["DEBIE", "PapaBench", "rosace"]
+
+        self.analysis_cmd = [str(os.path.join(self.XDD_root_path, "xstep/collSemantic_test")),
+                             "-v", "--add-prop", "otawa::dfa::CONST_SECTION=.got", "--log", "proc",
+                             "--add-prop",
+                             "otawa::PROCESSOR_PATH=" + str(os.path.join(self.XDD_root_path, "arch/simple.xml")),
+                             "--add-prop",
+                             "otawa::CACHE_CONFIG_PATH=" + str(
+                                 os.path.join(self.XDD_root_path, "arch/simple_cache.xml")),
+                             "--add-prop",
+                             "otawa::MEMORY_PATH=" + str(os.path.join(self.XDD_root_path, "arch/simple_mem.xml")),
+                             ]
+
+        self.TACLe_kernel_infty = ["pm", "bitonic"]
         self.db = None
 
-    def status(self, onlyKO=False):
-        if onlyKO:
+    def status(self, only_ko=False):
+        if only_ko:
             return self.db[self.db["TestStatus"] == "KO"][["BenchName", "TAGs", "TestStatus", "TestInfo"]]
         else:
             return self.db[["BenchName", "TAGs", "TestStatus", "TestInfo"]]
@@ -62,8 +70,8 @@ class BenchsDB:
         self.db = pd.DataFrame(columns=["BenchName", "TAGs", "TestStatus", "TestInfo", "ExecPath", "EntryPoint"])
 
         # kernel benchmarks
-        for bench in TACLe_default_kernel_benchs:
-            fullpath = os.path.join(TACLe_root_path, "kernel", bench, bench + ".elf")
+        for bench in self.TACLe_default_kernel_benchs:
+            fullpath = os.path.join(self.TACLe_root_path, "kernel", bench, bench + ".elf")
             if not os.path.isfile(fullpath):
                 print(Fore.RED + "Error: file " + Fore.YELLOW + fullpath
                       + Fore.RED + " does not exist" + Fore.RESET)
@@ -74,8 +82,8 @@ class BenchsDB:
                 self.db = pd.concat([self.db, new_row.to_frame().T], ignore_index=True)
 
         # sequential benchmarks
-        for bench in TACLe_default_sequential_benchs:
-            fullpath = os.path.join(TACLe_root_path, "sequential", bench, bench + ".elf")
+        for bench in self.TACLe_default_sequential_benchs:
+            fullpath = os.path.join(self.TACLe_root_path, "sequential", bench, bench + ".elf")
             if not os.path.isfile(fullpath):
                 print(Fore.RED + "Error: file " + Fore.YELLOW + fullpath
                       + Fore.RED + "does not exist" + Fore.RESET)
@@ -86,8 +94,8 @@ class BenchsDB:
                 self.db = pd.concat([self.db, new_row.to_frame().T], ignore_index=True)
 
         # parallel benchmarks
-        for bench in TACLe_default_parallel_benchs:
-            benchpath = os.path.join(TACLe_root_path, "parallel", bench)
+        for bench in self.TACLe_default_parallel_benchs:
+            benchpath = os.path.join(self.TACLe_root_path, "parallel", bench)
             tasks_json_file = os.path.join(benchpath, "TASKS.json")
             if not os.path.isfile(tasks_json_file):
                 print(Fore.RED + "Error: Tasks json file note found at "
@@ -115,8 +123,8 @@ class BenchsDB:
                     self.db = pd.concat([self.db, new_bench.to_frame().T], ignore_index=True)
 
         # app benchmarks
-        for bench in TACLe_default_app_benchs:
-            benchpath = os.path.join(TACLe_root_path, "app", bench)
+        for bench in self.TACLe_default_app_benchs:
+            benchpath = os.path.join(self.TACLe_root_path, "app", bench)
             tasks_json_file = os.path.join(benchpath, "TASKS.json")
             if not os.path.isfile(tasks_json_file):
                 print(Fore.RED + "Error: Tasks json file note found at "
@@ -167,7 +175,10 @@ class BenchsDB:
             return True
 
     def select_db(self, tags):
-        return self.db[self.db["TestStatus"].isin(tags) | self.db["TAGs"].isin(tags)]
+        if "all" in tags:
+            return self.db
+        else:
+            return self.db[self.db["TestStatus"].isin(tags) | self.db["TAGs"].isin(tags)]
 
     def run(self, log="/tmp/logcaca", tags=None):
         self.is_db_loaded()
@@ -179,18 +190,18 @@ class BenchsDB:
             filtered_db = self.select_db(tags)
         benchs = [(bn, [exe, ep]) for bn, exe, ep in
                   zip(filtered_db["BenchName"], filtered_db["ExecPath"], filtered_db["EntryPoint"])]
-        pool = Pool(4)
+        pool = Pool(3)
         for b in benchs:
             pool.apply_async(self.run_bench, args=[b, log], error_callback=error_handle)
         pool.close()
         pool.join()
 
     def run_bench(self, bench, log):
-        os.environ["LD_LIBRARY_PATH"] = os.path.join(OTAWA_root_path, "lib/otawa/otawa")
-        print(" ".join(analysis_cmd) + " " + " ".join(bench[1]))
+        os.environ["LD_LIBRARY_PATH"] = os.path.join(self.OTAWA_root_path, "lib/otawa/otawa")
+        print(" ".join(self.analysis_cmd) + " " + " ".join(bench[1]))
         try:
-            result = subprocess.run(analysis_cmd + bench[1],
-                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=120)
+            result = subprocess.run(self.analysis_cmd + bench[1],
+                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=7200)
         except subprocess.TimeoutExpired:
             result = None
 
@@ -254,6 +265,6 @@ if __name__ == "__main__":
         df = db.status()
         for o, a in opts:
             if o == "--errOnly":
-                df = db.status(onlyKO=True)
+                df = db.status(only_ko=True)
         with pd.option_context('display.max_rows', 100, 'display.max_columns', 20, 'display.expand_frame_repr', False):
             print(df)
