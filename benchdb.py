@@ -180,7 +180,9 @@ class BenchsDB:
         else:
             return self.db[self.db["TestStatus"].isin(tags) | self.db["TAGs"].isin(tags)]
 
-    def run(self, log="/tmp/logcaca", tags=None):
+    def run(self, log=None, tags=None):
+        if log is None:
+            log = self.LOG_PATH
         self.is_db_loaded()
         if not os.path.isdir(log):
             os.mkdir(log)
