@@ -88,17 +88,19 @@ class EventsStatsParser(FileParser):
         plt.show()
 
 
+# used in EventsAgeDistributionParser
+def get_count_from_info(info):
+    return int(info[6:].split(":")[1])
+
+
 class EventsAgeDistributionParser(FileParser):
     def __init__(self):
         super(EventsAgeDistributionParser, self).__init__(re.compile(r"(#DIST#\d+:\d+)"))
 
-    def get_count_from_info(self, info):
-        return int(info[6:].split(":")[1])
-
     def rework_bench_res(self):
         res = [0] * 30
         for res_per_bench in self.res:
-            res = [a + self.get_count_from_info(b) for a, b in zip(res, res_per_bench[1:])]
+            res = [a + get_count_from_info(b) for a, b in zip(res, res_per_bench[1:])]
         self.res = res
 
     def plot(self):
@@ -138,10 +140,10 @@ if __name__ == "__main__":
     log_files = [os.path.join(log_path, x) for x in names]
 
     # debug use
-    log_files = ["/tmp/caca", "/tmp/caca"]
+    # log_files = ["/tmp/caca", "/tmp/caca"]
 
-    p = EventsStatsParser()
-    p.parse_all_files(log_files)
-    # p = EventsAgeDistributionParser()
+    # p = EventsStatsParser()
     # p.parse_all_files(log_files)
+    p = EventsAgeDistributionParser()
+    p.parse_all_files(log_files)
     p.plot()

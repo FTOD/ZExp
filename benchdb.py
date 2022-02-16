@@ -203,7 +203,7 @@ class BenchsDB:
         print(" ".join(self.analysis_cmd) + " " + " ".join(bench[1]))
         try:
             result = subprocess.run(self.analysis_cmd + bench[1],
-                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=7200)
+                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=300)
         except subprocess.TimeoutExpired:
             result = None
 
