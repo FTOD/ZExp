@@ -9,31 +9,30 @@ class FileParser:
 
     def __init__(self, rx):
         self.__rx = rx
+        self.res = None
 
-    def parse_all_files(self, path):
-        logs_file = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
-        res = []
+    def parse_all_files(self, log_files):
+        self.res = []
         # parse all files
-        for f in logs_file:
+        for f in log_files:
             with open(f, 'r') as fp:
                 # load the total content once
                 content = fp.read()
-                match = self.__rx.search(content)
+                match = self.__rx.findall(content)
                 if match:
-                    info = list(match.groups())
-                    info = [int(x) for x in info]
+                    info = match
                     info.insert(0, ntpath.basename(f))
                     # add data of one file in the list
-                    res.append(info)
+                    self.res.append(info)
                 else:
                     print("error, data not found in", f)
-        return res
+        return self.res
 
 
 # Abstract class
 class LineParser:
 
-    def update(self, info):
+    def update(self, res, info):
         raise NotImplementedError("Should have implemented this")
 
     def top(self):
@@ -41,7 +40,7 @@ class LineParser:
 
     def __init__(self, rx):
         self.__rx = rx
-        self.__res = []
+        self.res = []
 
     def test(self, _str):
         match = self.__rx.search(_str)
@@ -51,15 +50,16 @@ class LineParser:
             print("pattern not found, test failed")
 
     def parse_line(self, line, res):
+        print(line)
         match = self.__rx.search(line)
         if match:
             info = list(match.groups())
-            res = self.update(res, info)
+            res = self.update(info, res)
 
         return res
 
-    def parse_all_files(self, path):
-        files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
+    def parse_all_files(self, files):
+        # files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
         # print(files)
 
         for f in files:
@@ -76,16 +76,20 @@ class LineParser:
                         print("Error reading ", f, "reading ")
                         print("line:", i, "  Abort!!!")
                         exit(-1)
-                self.__res.append([ntpath.basename(f), _res])
+                self.res.append([ntpath.basename(f), _res])
 
-        return self.__res
+        return self.res
+
+    def get_res(self):
+        return self.res
 
 
+""""
 class WcetResParser(LineParser):
     def __init__(self):
         super(WcetResParser, self).__init__(re.compile('WCET = (\d+)'))
 
-    def update(self, res, info):
+    def update(self, info):
         return int(info[0])
 
     def top(self):
@@ -98,12 +102,12 @@ class BBInfoParser(LineParser):
              r'Manager Nodes\|analysis time = (\d+)')
         super(BBInfoParser, self).__init__(re.compile(a))
 
-    def update(self, res, info):
+    def update(self, info):
         if not info:
-            return res
+            return self.res
         info = info[:1] + [int(x) for x in info[1:]]
-        res.append(info)
-        return res
+        self.res.append(info)
+        return self.res
 
     def top(self):
         return []
@@ -113,7 +117,7 @@ class IlpVarCountParser(LineParser):
     def __init__(self):
         super(IlpVarCountParser, self).__init__(re.compile(r'ILP VARS COUNT = (\d+)'))
 
-    def update(self, res, info):
+    def update(self, info):
         return int(info[0])
 
     def top(self):
@@ -124,8 +128,9 @@ class BoundedEventsCountParser(LineParser):
     def __init__(self):
         super(BoundedEventsCountParser, self).__init__(re.compile(r'BOUNDED IN_BLOCK EVENT: YES'))
 
-    def update(self, res, info):
-        return res + 1
+    def update(self, info):
+        self.res = self.res + 1
+        return self.res 
 
     def top(self):
         return 0
@@ -135,8 +140,8 @@ class UnboundedEventsCountParser(LineParser):
     def __init__(self):
         super(UnboundedEventsCountParser, self).__init__(re.compile(r'BOUNDED IN_BLOCK EVENT: NO'))
 
-    def update(self, res, info):
-        return res + 1
+    def update(self, info):
+        return self.res + 1
 
     def top(self):
         return 0
@@ -146,7 +151,7 @@ class AnalysisTimeParser(LineParser):
     def __init__(self):
         super(AnalysisTimeParser, self).__init__(re.compile(r'User time \(seconds\): (\d+\.\d+)'))
 
-    def update(self, res, info):
+    def update(self, info):
         return float(info[0])
 
     def top(self):
@@ -159,6 +164,8 @@ class DcacheAnalysisRes(FileParser):
             r'always-hit:\s*(\d+)\s*\((\d+)\..*\).*\s*first-hit:\s*(\d)+\s*\((\d+)\..*\).*\s*first-miss:\s*(\d+)\s*\('
             r'(\d+)\..*\).*\s*always-miss:\s*(\d+)\s*\((\d+)\..*\).*\s*not-classified:\s*(\d+)\s*\(('
             r'\d+)\..*\).*\s*total:\s*(\d+)'))
+            
+"""
 
 
 if __name__ == "__main__":
