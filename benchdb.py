@@ -33,11 +33,11 @@ class BenchsDB:
                                             "bitcount", "binarysearch", "md5", "fac", "quicksort", "isqrt", "jfdctint"]
         self.TACLe_default_sequential_benchs = ["ndes", "cjpeg_transupp", "cjpeg_wrbmp", "gsm_dec", "adpcm_enc", "epic",
                                                 "mpeg2",
-                                                "huff_enc", "petrinet", "rijndael_enc", "gsm_enc", "rijndael_dec",
+                                                "huff_enc", "petrinet", "rijndael_enc", "rijndael_dec",
                                                 "statemate",
                                                 "anagram", "susan", "g723_enc", "fmref", "ammunition", "audiobeam",
                                                 "dijkstra",
-                                                "huff_dec", "h264_dec", "adpcm_dec"]
+                                                "huff_dec", "h264_dec", "adpcm_dec"]# + ["gsm_enc"]
         self.TACLe_default_app_benchs = ["lift", "powerwindow"]
         self.TACLe_default_parallel_benchs = ["DEBIE", "PapaBench", "rosace"]
 

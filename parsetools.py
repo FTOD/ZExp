@@ -3,13 +3,15 @@ from os import listdir
 from os.path import isfile, join
 import ntpath
 
+error_code = 9999999
 
 # parse data that appears once per file, and in several lines
 class FileParser:
 
-    def __init__(self, rx):
+    def __init__(self, rx, pass_error=True):
         self.__rx = rx
         self.res = None
+        self.pass_error = pass_error
 
     def parse_all_files(self, log_files):
         self.res = []
@@ -25,7 +27,11 @@ class FileParser:
                     # add data of one file in the list
                     self.res.append(info)
                 else:
-                    print("error, data not found in", f)
+                    if self.pass_error:
+                        print("error, data not found in", f)
+                    else:
+                        # use 99999 as error code
+                        self.res.append([ntpath.basename(f), error_code])
         return self.res
 
 
