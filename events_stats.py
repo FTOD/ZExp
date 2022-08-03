@@ -66,7 +66,9 @@ class AnalysisTimeParser(FileParser):
         self.res = res
         # remove papabench inexisting entries (bad TASKS.json description)
         papabench_bad_benchs = ["papabench-reporting_task", "papabench-navigation_task",
-                                "papabench-receive_gps_data_task", "gsm_enc"]
+                                "papabench-receive_gps_data_task", "gsm_enc",
+                                "rosace-ros_th1_main", "rosace-ros_th2_main", "rosace-ros_th3_main", "rosace-ros_th4_main", "rosace-ros_th5_main",
+                                "susan", "anagram"]
         self.res = [x for x in self.res if x[0] not in papabench_bad_benchs]
         self.res.sort(key=lambda xx: xx[0])
 
@@ -282,7 +284,7 @@ def plot_analysis_time():
     ax.legend(fontsize=35)
     plt.yticks(fontsize=50)
     plt.xticks(fontsize=30)
-    plt.xlim([-1, 76])
+    plt.xlim([-1, 70])
     plt.legend(ncol=4, fontsize=30)
     plt.subplots_adjust(right=0.999, top=0.6, left=0.08, bottom=0.286, wspace=0.0, hspace=0.0)
     plt.show()
