@@ -56,7 +56,6 @@ class LineParser:
             print("pattern not found, test failed")
 
     def parse_line(self, line, res):
-        print(line)
         match = self.__rx.search(line)
         if match:
             info = list(match.groups())
@@ -90,12 +89,11 @@ class LineParser:
         return self.res
 
 
-""""
 class WcetResParser(LineParser):
     def __init__(self):
         super(WcetResParser, self).__init__(re.compile('WCET = (\d+)'))
 
-    def update(self, info):
+    def update(self, info, res):
         return int(info[0])
 
     def top(self):
@@ -171,7 +169,6 @@ class DcacheAnalysisRes(FileParser):
             r'(\d+)\..*\).*\s*always-miss:\s*(\d+)\s*\((\d+)\..*\).*\s*not-classified:\s*(\d+)\s*\(('
             r'\d+)\..*\).*\s*total:\s*(\d+)'))
             
-"""
 
 
 if __name__ == "__main__":

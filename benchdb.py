@@ -27,17 +27,17 @@ class BenchsDB:
         self.LOG_PATH = config_json["LOG_PATH"]
 
         self.TACLe_default_subdir = ["kernel", "sequential", "parallel", "app"]
-        self.TACLe_default_kernel_benchs = ["insertsort", "fir2dim", "st", "deg2rad", "sha", "recursion", "filterbank",
-                                            "bitonic", "cubic", "cosf", "ludcmp", "pm", "bsort", "lms", "countnegative",
+        self.TACLe_default_kernel_benchs = ["insertsort", "fir2dim", "st", "deg2rad", "sha", "filterbank",
+                                            "bitonic", "cubic", "cosf", "ludcmp", "bsort", "lms", "countnegative",
                                             "iir", "minver", "prime", "complex_updates", "rad2deg", "fft", "matrix1",
-                                            "bitcount", "binarysearch", "md5", "fac", "quicksort", "isqrt", "jfdctint"]
+                                            "bitcount", "binarysearch", "md5", "fac",  "isqrt", "jfdctint"]
+                                            #+["quicksort", "pm", "recursion"]
         self.TACLe_default_sequential_benchs = ["ndes", "cjpeg_transupp", "cjpeg_wrbmp", "gsm_dec", "adpcm_enc", "epic",
-                                                "mpeg2",
-                                                "huff_enc", "petrinet", "rijndael_enc", "rijndael_dec",
+                                                "petrinet", "rijndael_enc", "rijndael_dec",
                                                 "statemate",
-                                                "anagram", "susan", "g723_enc", "fmref", "ammunition", "audiobeam",
+                                                "anagram", "susan", "g723_enc", "fmref",  "audiobeam",
                                                 "dijkstra",
-                                                "huff_dec", "h264_dec", "adpcm_dec"]# + ["gsm_enc"]
+                                                "huff_dec", "h264_dec", "adpcm_dec"]# + ["gsm_enc", "ammunition", "huff_enc", "mpeg2"]
         self.TACLe_default_app_benchs = ["lift", "powerwindow"]
         self.TACLe_default_parallel_benchs = ["DEBIE", "PapaBench", "rosace"]
 
@@ -52,7 +52,6 @@ class BenchsDB:
                              "otawa::MEMORY_PATH=" + str(os.path.join(self.XDD_root_path, "arch/simple_mem.xml")),
                              ]
 
-        self.TACLe_kernel_infty = ["pm", "bitonic"]
         self.db = None
 
     def status(self, only_ko=False):
